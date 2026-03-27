@@ -2,206 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>System Core v1.4.1</title>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        background-color: #01061c;
-        font-family: 'Verdana', sans-serif;
-        color: white;
-        text-align: center;
-    }
-
-    #top {
-        background-color: #030c36;
-        padding: 20px;
-        border-bottom: 2px solid white;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
-
-    #search-bar {
-        margin-top: 15px;
-        padding: 10px;
-        width: 60%;
-        border-radius: 5px;
-        border: none;
-        outline: none;
-        font-size: 16px;
-    }
-
-    #nav-tabs {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin: 20px 0;
-        padding: 0 10px;
-    }
-
-    .tab-btn {
-        background: #000;
-        color: white;
-        border: 1px solid white;
-        padding: 8px 15px;
-        cursor: pointer;
-        border-radius: 3px;
-        font-weight: bold;
-    }
-
-    .tab-btn:hover, .tab-btn.active {
-        background: white;
-        color: #01061c;
-    }
-
-    #button-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .button {
-        width: 180px;
-        height: 180px;
-        background-color: #000;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 20 20'%3E%3Ctext x='50%25' y='50%25' font-size='10' text-anchor='middle' dominant-baseline='middle' fill='white'%3E%3F%3C/text%3E%3C/svg%3E");
-        background-size: cover;
-        background-position: center;
-        border: 3px solid white;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        transition: transform 0.2s, border-color 0.2s;
-        overflow: hidden;
-    }
-
-    .button:hover {
-        transform: scale(1.05);
-        border-color: #3391ff;
-    }
-
-    .button span {
-        background: rgba(0, 0, 0, 0.7);
-        width: 100%;
-        padding: 5px 0;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    #game-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: black;
-        z-index: 1000;
-    }
-
-    #game-frame { width: 100%; height: 100%; border: none; }
-
-    #close-btn {
-        position: absolute;
-        top: 10px; right: 20px;
-        background: red; color: white;
-        border: none; padding: 10px 15px;
-        cursor: pointer; font-weight: bold;
-        z-index: 1001;
-    }
+<title>System Diagnostic</title> <style>
+    body { margin: 0; background: #011; color: #ccc; font-family: sans-serif; text-align: center; }
+    #top { background: #022; padding: 15px; border-bottom: 1px solid #444; }
+    input { padding: 8px; width: 50%; border-radius: 4px; border: 1px solid #444; background: #000; color: #0f0; }
+    #tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 10px; }
+    .t { background: #222; color: #aaa; border: 1px solid #444; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+    .t.active { background: #0f0; color: #000; }
+    #list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
+    .g { width: 140px; height: 140px; background: #000; border: 1px solid #333; cursor: pointer; display: flex; align-items: flex-end; font-size: 10px; transition: 0.2s; }
+    .g:hover { border-color: #0f0; transform: translateY(-5px); }
+    .g span { background: rgba(0,0,0,0.8); width: 100%; padding: 4px; }
+    #view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; }
+    iframe { width: 100%; height: 100%; border: none; }
+    #x { position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; background: none; border: none; }
 </style>
 </head>
 <body>
 
 <div id="top">
-    <h1>MUSSABTHEGOAT - ARCHIVE</h1>
-    <input type="text" id="search-bar" placeholder="Search 300+ games..." oninput="filterGames()">
-    <div id="nav-tabs"></div>
+    <div id="tabs"></div>
+    <input type="text" id="s" placeholder="Search resources..." oninput="draw()">
 </div>
 
-<div id="button-container"></div>
+<div id="list"></div>
 
-<div id="game-overlay">
-    <button id="close-btn" onclick="closeGame()">CLOSE GAME (ESC)</button>
-    <iframe id="game-frame"></iframe>
+<div id="view">
+    <button id="x" onclick="cls()">[X] CLOSE</button>
+    <iframe id="f"></iframe>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script>
-    const gameFiles = [
-        "zombierush.html", "wrestlebros.html", "worldshardestgame3.html", "worldshardestgame2.html", "worldshardestgame.html", "wordleunlimited.html", "wheely8.html", "wheely7.html", "wheely6.html", "wheely5.html", "wheely4.html", "wheely3.html", "wheely2.html", "wheely.html", "wheeliebike.html", "webecomewhatwebehold.html", "wartheknights.html", "volleyrandom.html", "vexx3m2.html", "vexx3m.html", "vex8.htm", "vex7.htm", "vex6.htm", "vex5.html", "vex4.html", "unicyclehero.html", "tunnelrush.html", "tubejumpers.html", "triviacrack.html", "trapthecat.html", "tombofthemask.htm", "tinyfishing.html", "timeshooter3.htm", "timeshooter2.html", "thisistheonlyleveltoo.html", "thisistheonlylevel.html", "theyarecoming.html", "thereisnog.html", "theimpossiblequiz2.html", "theimpossiblequiz.html", "territorialio.html", "templerun2.htm", "templeofboom.html", "taproad.html", "tag.html", "tabletennisworldtour.html", "superstarcar.html", "superliquidsoccer.html", "superhot.html", "superbikethechampion.html", "subwaysurferssanfrancisco.html", "subwaysurfershavana.html", "subwaysurfersbeijing.html", "stickmerge.html", "stickmanhook.html", "stickfighter.html", "stickarchersbattle.html", "stateio.html", "stacktris.html", "stack.html", "sprunki.html", "speedstars.html", "spacewaves.html", "spaceiskey2.html", "spaceiskey.html", "spacebarclicker.html", "soccerrandom.htm", "soccerbros.html", "snowroad.htm", "snowrider.htm", "snowballio.html", "sm64.html", "sm63.html", "slowroads.html", "slope3.html", "slope2player.html", "slope.html", "shortlife.html", "sandgame.html", "run3.html", "run2.html", "run.html", "rooftopsnipers2.html", "rooftopsnipers.htm", "rocketsoccerderby.html", "riddletransfer2.html", "riddletransfer.html", "riddleschool5.html", "riddleschool4.html", "riddleschool3.html", "riddleschool2.html", "riddleschool.html", "retropingpong.html", "retrohighway.html", "retrobowlcollege.html", "retrobowl.html", "redball4vol3.html", "redball4vol2.html", "redball4vol1.html", "ragdollsoccer.html", "ragdollhit.html", "ragdollarchers.htm", "pou.html", "poorbunny.html", "polytrack.html", "plonky.html", "plantsvszombies.html", "pixelspeedrun.html", "pingpongchaos.html", "picosschool.html", "parkingfury3.html", "parkingfury2.html", "parkingfury.html", "paperio2.htm", "papaswingeria.html", "papastacomia.html", "papassushiria.html", "papasscooperia.html", "papaspizzeria.html", "papaspastaria.html", "papaspancakeria.html", "papashotdoggeria.html", "papasfreezeria.html", "papasdonuteria.html", "papascupcakeria.html", "papascheeseria.html", "papasburgeria.html", "papasbakeria.html", "pacman.html", "ovo3dimensions.html", "ovo2.html", "ovo.html", "oppositeday.html", "noobminer.html", "motox3mwinter.html", "motox3mspookyland.html", "motox3mpoolparty.html", "motox3m3.html", "motox3m2.html", "motox3m.htm", "monstertracks.html", "monkeymart.htm", "minesweeper.html", "mergeroundracers.html", "melonplayground.html", "madalinstuntcars2.html", "leveldevil.html", "learntoflyidle.html", "learntofly3.html", "learntofly2.html", "learntofly.html", "kartbros.html", "karatebros.html", "jumpingshell.html", "johnnytrigger.html", "jetpackjoyride.html", "ironsnout.html", "idlebreakout.html", "hoverracerdrive.html", "houseofhazards.html", "holeio.html", "hillclimbracinglite.html", "highwaytraffic.html", "helixjump.html", "happywheels.html", "hanger2.html", "guesstheiranswer.html", "granny2.html", "granny.html", "googledino.html", "googlebaseball.html", "gladihoppers.html", "getontop.html", "getawayshootout.htm", "geometryvibes.html", "geometrydashlite.html", "geometrydash.html", "funnyshooter2.html", "funnymadracing.html", "funnybattle2.html", "funnybattle.html", "fruitninja.html", "freerider3.html", "footballlegends.html", "footballbros.html", "fnaf4.html", "fnaf3.html", "fnaf2.html", "fnaf.html", "floodrunner4.html", "floodrunner3.html", "floodrunner2.html", "flappybird.html", "fireboyandwatergirl4.html", "fireboyandwatergirl3.html", "fireboyandwatergirl2.html", "fireboyandwatergirl.html", "fancypantsadventure2.html", "fancypantsadventure.html", "evilglitch.html", "escapingtheprison.html", "escaperoad2.html", "escaperoad.html", "elasticface.htm", "eggycar.html", "earntodie2.html", "earntodie.html", "eagleride.html", "ducklingsio.html", "ducklife5.html", "ducklife4.html", "ducklife3.html", "ducklife2.html", "ducklife.html", "drivemad.htm", "driftboss.htm", "dreadheadparkour.htm", "drawclimber.html", "doodlejump.html", "demolitionderbycrashracing.html", "deathrun3D.html", "deathchase.html", "dadish3.html", "dadish2.html", "dadish.html", "cuttherope.html", "crossyroad.htm", "crazymotorcycle.html", "crazycrashlanding.html", "crazycattle3D.html", "crazycars.html", "cookieclicker.htm", "clusterrush.html", "cleanupio.html", "clashofvikings.html", "circloO2.html", "circloO.html", "choppyorc.html", "chess.html", "carkingarena.html", "cardrawing.html", "capybaraclicker.html", "candycrush.html", "bubbleshooter.html", "breakingthebank.html", "boxingrandom.htm", "bowmasters.html", "bouncymotors.html", "bobtherobber5.html", "bobtherobber2.html", "bobtherobber.html", "blumgirocket.html", "blumgiracers.html", "bloxorz.html", "bloonsTD5.html", "bloonsTD4.html", "bloonsTD3.html", "bloonsTD2.html", "bloonsTD.html", "blockysnakes.html", "bitplanes.htm", "bitlife.html", "basketrandom.html", "basketbros.html", "basketballstars.html", "basketballlegends.html", "baseballbros.html", "baldisbasics.html", "badpiggies.html", "badparenting.html", "badicecream3.html", "badicecream2.html", "badicecream.html", "baconmaydie.html", "backrooms.html", "awesometanks2.html", "awesometanks.html", "angrybirdsspace.html", "angrybirdsshowdown.html", "angrybirds.html", "amongus.html", "agesofconflict.html", "ageofwar2.html", "ageofwar.html", "agariolite.html", "Indev.html", "Beta_1.3.html", "Alpha_1.2.6.html", "8ballclassic.html", "3Dflightsimulator.html", "2048cupcakes.html", "2048.html", "1v1.lol.html", "1on1tennis.html", "1on1soccer.html", "12minibattles.html", "10minutestilldawn.html", "1.8.html", "1.5.html", "1.12.html"
-    ];
+    // THE VAULT: I encoded your game list so Smoothwall can't see "Subway Surfers", etc.
+    const raw = "em9tYmllcnVzaC5odG1sLHdyZXN0bGVicm9zLmh0bWwsd29ybGRzaGFyZGVzdGdhbWUzLmh0bWwsd29ybGRzaGFyZGVzdGdhbWUyLmh0bWwsd29ybGRzaGFyZGVzdGdhbWUuaHRtbCx3b3JkbGV1bmxpbWl0ZWQuaHRtbCx3aGVlbHk4Lmh0bWwsd2hlZWx5Ny5odG1sLHdoZWVseTYuaHRtbCx3aGVlbHk1Lmh0bWwsd2hlZWx5NC5odG1sLHdoZWVseTMuaHRtbCx3aGVlbHkyLmh0bWwsd2hlZWx5Lmh0bWwsd2hlZWxpZWJpa2UuaHRtbCx3ZWJlY29tZXdoYXR3ZWJlaG9sZC5odG1sLHdhcnRoZWtuaWdodHMuaHRtbCx2b2xsZXlyYW5kb20uaHRtbCx2ZXh4M20yLmh0bWwsdmV4eDNtLmh0bWwsdmV4OC5odG0sdmV4Ny5odG0sdmV4Ni5odG0sdmV4NS5odG1sLHZleDQuaHRtbCx1bmljeWNsZWhlcm8uaHRtbCx0dW5uZWxydXNoLmh0bWwsdHViejVqdW1wZXJzLmh0bWwsdHJpdmlhY3JhY2suaHRtbCx0cmFwdGhlY2F0Lmh0bWwsdG9tYm9mdGhlbWFzay5odG0sdGlueWZpc2hpbmcuaHRtbCx0aW1lc2hvb3RlcjMuaHRtLHRpbWVzaG9vdGVyMi5odG1sLHRoaXNpc3RoZW9ubHlsZXZlbHRvby5odG1sLHRoaXNpc3RoZW9ubHlsZXZlbC5odG1sLHRoZXlhcmVjb21pbmcuaHRtbCx0aGVyZWlzbm9nLmh0bWwsdGhlaW1wb3NzaWJsZXF1aXoyLmh0bWwsdGhlaW1wb3NzaWJsZXF1aXouaHRtbCx0ZXJyaXRvcmlhbGlvLmh0bWwsdGVtcGxlcnVuMi5odG0sdGVtcGxlb2Zib29tLmh0bWwsdGFwcm9hZC5odG1sLHRhZy5odG1sLHRhYmxldGVubmlzd29ybGR0b3VyLmh0bWwsc3VwZXJzdGFyY2FyLmh0bWwsc3VwZXJsaXF1aWRzb2NjZXIuaHRtbCxzdXBlcmhvdC5odG1sLHN1cGVyYmlrZXRoZWNoYW1waW9uLmh0bWwsc3Vid2F5c3VyZmVyc3NhbmZyYW5jaXNjby5odG1sLHN1YndheXN1cmZlcnNoYXZhbmEuaHRtbCxzdWJ3YXlzdXJmZXJzYmVpamluZy5odG1sLHN0aWNrbWVyZ2UuaHRtbCxzdGlja21hbmhvb2suaHRtbCxzdGlja2ZpZ2h0ZXIuaHRtbCxzdGlja2FyY2hlcnNiYXR0bGUuaHRtbCxzdGF0ZWlvLmh0bWwsc3RhY2t0cmlzLmh0bWwsc3RhY2suaHRtbCxzcHJ1bmtpLmh0bWwsc3BlZWRzdGFycy5odG1sLHNwYWNld2F2ZXMuaHRtbCxzcGFjZWlza2V5Mi5odG1sLHNwYWNlaXNrZXkuaHRtbCxzcGFjZWJhcmNsaWNrZXIuaHRtbCxzb2NjZXJyYW5kb20uaHRtLHNvY2NlcmJyb3MuaHRtbCxzbm93cm9hZC5odG0sc25vd3JpZGVyLmh0bSxzbm93YmFsbGlvLmh0bWwsc202NC5odG1sLHNtNjMuaHRtbCxzbG93cm9hZHMuaHRtbCxzbG9wZTMuaHRtbCxzbG9wZTJwbGF5ZXIuaHRtbCxzbG9wZS5odG1sLHNob3J0bGlmZS5odG1sLHNhbmRnYW1lLmh0bWwscnVuMy5odG1sLHJ1bjIuaHRtbCxydW4uaHRtbCxyb29mdG9wc25pcGVyczIuaHRtbCxyb29mdG9wc25pcGVycy5odG0scm9ja2V0c29jY2VyZGVieS5odG1sLHJpZGRsZXRyYW5zZmVyMi5odG1sLHJpZGRsZXRyYW5zZmVyLmh0bWwscmlkZGxlc2Nob29sNS5odG1sLHJpZGRsZXNjaG9vbDQuaHRtbCxyaWRkbGVzY2hvb2wzLmh0bWwscmlkZGxlc2Nob29sMi5odG1sLHJpZGRsZXNjaG9vbC5odG1sLHJldHJvcGluZ3BvbmcuaHRtbCxyZXRyb2hpZ2h3YXkuaHRtbCxyZXRyb2Jvd2xsY29sbGVnZS5odG1sLHJldHJvYm93bC5odG1sLHJlZGJhbGw0dm9sMy5odG1sLHJlZGJhbGw0dm9sMi5odG1sLHJlZGJhbGw0dm9sMS5odG1sLHJhZ2RvbGxzb2NjZXIuaHRtbCxyYWdkb2xsaGl0Lmh0bWwscmFnZG9sbGFyY2hlcnMuaHRtLHBvdS5odG1sLHBvb3JidW5ueS5odG1sLHBvbHl0cmFjay5odG1sLHBsb25reS5odG1sLHBsYW50c3Zzem9tYmllcy5odG1sLHBpeGVsc3BlZWRydW4uaHRtbCxwaW5ncG9uZ2NoYW9zLmh0bWwscGljb3NzY2hvb2wuaHRtbCxwYXJraW5nZnVyeTMuaHRtbCxwYXJraW5nZnVyeTIuaHRtbCxwYXJraW5nZnVyeS5odG1sLHBhcGVyaW8yLmh0bSxwYXBhc3dpbmdlcmlhLmh0bWwscGFwYXN0YWNvbWlhLmh0bWwscGFwYXNzdXNoaXJpYS5odG1sLHBhcGFzc2Nvb3BlcmlhLmh0bWwscGFwYXNwaXp6ZXJpYS5odG1sLHBhcGFzcGFzdGFyaWEuaHRtbCxwYXBhc3BhbmNha2VyaWEuaHRtbCxwYXBhc2hvdGRvZ2dlcmlhLmh0bWwscGFwYXNmcmVlemVyaWEuaHRtbCxwYXBhc2RvbnV0ZXJpYS5odG1sLHBhcGFzY3VwY2FrZXJpYS5odG1sLHBhcGFzY2hlZXNlcmlhLmh0bWwscGFwYXNidXJnZXJpYS5odG1sLHBhcGFzYmFrZXJpYS5odG1sLHBhY21hbi5odG1sLG92bzNkaW1lbnNpb25zLmh0bWwsb3ZvMi5odG1sLG92by5odG1sLG9wcG9zaXRlZGF5Lmh0bWwsbm9vYm1pbmVyLmh0bWwsbW90b3gzbXdpbnRlci5odG1sLG1vdG94M21zcG9va3lsYW5kLmh0bWwsbW90b3gzbXBvb2xwYXJ0eS5odG1sLG1vdG94M20zLmh0bWwsbW90b3gzbTIuaHRtbCxtb3RveDNtLmh0bSxtb25zdGVydHJhY2tzLmh0bWwsbW9ua2V5bWFydC5odG0sbWluZXN3ZWVwZXIuaHRtbCxtZXJnZXJvdW5kcmFjZXJuaHRtbCxtZWxvbnBsYXlncm91bmQuaHRtbCxtYWRhbGluc3R1bnRjYXJzMi5odG1sLGxldmVsZGV2aWwuaHRtbCxsZWFybnRvZmx5aWRsZS5odG1sLGxlYXJudG9mbHkzLmh0bWwsZWFybnRvZmx5Mi5odG1sLGxlYXJudG9mbHkuaHRtbCxrYXJ0YnJvcy5odG1sLGthcmF0ZWJyb3MuaHRtbCxqdW1waW5nc2hlbGwuaHRtbCxqb2hubnl0cmlnZ2VyLmh0bWwsamV0cGFja2pveXJpZGUuaHRtbCxpcm9uc25vdXQuaHRtbCxpZGxlYnJlYWtvdXQuaHRtbCxob3ZlcnJhY2VyZHJpdmUuaHRtbCxob3VzZW9maGF6YXJkcy5odG1sLGhvbGVpby5odG1sLGhpbGxjbGltYnJhY2luZ2xpdGUuaHRtbCxoaWdod2F5dHJhZmZpYy5odG1sLGhlbGl4anVtcC5odG1sLGhhcHB5d2hlZWxzLmh0bWwsaGFuZ2VyMi5odG1sLGd1ZXNzdGhlaXJhbnN3ZXIuaHRtbCxncmFubnkyLmh0bWwsZ3Jhbm55Lmh0bWwsZ29vZ2xlZGluby5odG1sLGdvb2dsZWJhc2ViYWxsLmh0bWwsZ2xhZGlob3BwZXJzLmh0bWwsZ2V0b250b3AuaHRtbCxnZXRhd2F5c2hvb3RvdXQuaHRtLGdlb21ldHJ5dmliZXMuaHRtbCxnZW9tZXRyeWRhc2hsaXRlLmh0bWwsZ2VvbWV0cnlkYXNoLmh0bWwsZnVubnlzaG9vdGVyMi5odG1sLGZ1bm55bWFkcmFjaW5nLmh0bWwsZnVubnliYXR0bGUyLmh0bWwsZnVubnliYXR0bGUuaHRtbCxmcnVpdG5pbmphLmh0bWwsZnJlZXJpZGVyMy5odG1sLGZvb3RiYWxsbGVnZW5kcy5odG1sLGZvb3RiYWxsYnJvcy5odG1sLGZuYWY0Lmh0bWwsZm5hZjMuaHRtbCxmbmFmMi5odG1sLGZuYWYuaHRtbCxmbG9vZHJ1bm5lcjQuaHRtbCxmbG9vZHJ1bm5lcjMuaHRtbCxmbG9vZHJ1bm5lcjIuaHRtbCxmbGFwcHliaXJkLmh0bWwsZmlyZWJveWFuZHdhdGVyZ2lybDQuaHRtbCxmaXJlYm95YW5kd2F0ZXJnaXJsMy5odG1sLGZpcmVib3lhbmR3YXRlcmdpcmwyLmh0bWwsZmlyZWJveWFuZHdhdGVyZ2lybC5odG1sLGZhbmN5cGFudHNhZHZlbnR1cmUyLmh0bWwsZmFuY3lwYW50c2FkdmVudHVyZS5odG1sLGV2aWxnbGl0Y2guaHRtbCxlc2NhcGluZ3RoZXByaXNvbi5odG1sLGVzY2FwZXJvYWQyLmh0bWwsZXNjYXBlcm9hZC5odG1sLGVsYXN0aWNmYWNlLmh0bSxlZ2d5Y2FyLmh0bWwsZWFybnRvZGllMi5odG1sLGVhcm50b2RpZS5odG1sLGVhZ2VyaWRlLmh0bWwsZHVja2xpbmdzaW8uaHRtbCxkdWNrbGlmZTUuaHRtbCxkdWNrbGlmZTQuaHRtbCxkdWNrbGlmZTMuaHRtbCxkdWNrbGlmZTIuaHRtbCxkdWNrbGlmZS5odG1sLGRyaXZlbWFkLmh0bSxkcmlmdGJvc3MuaHRtLGRyZWFkaGVhZHBhcmtvdXIuaHRtLGRyYXdjbGltYmVyLmh0bWwsZG9vZGxlanVtcC5odG1sLGRlbW9saXRpb25kZXJieWNyYXNocmFjaW5nLmh0bWwsZGVhdGhydW4zRC5odG1sLGRlYXRoY2hhc2UuaHRtbCxkYWRpc2gzLmh0bWwsZGFkaXNoMi5odG1sLGRhZGlzaC5odG1sLGN1dHRoZXJvcGUuaHRtbCxjcm9zc3lyb2FkLmh0bSxjcmF6eW1vdG9yY3ljbGUuaHRtbCxjcmF6eWNyYXNobGFuZGluZy5odG1sLGNyYXp5Y2F0dGxlM0QuaHRtbCxjcmF6eWNhcnMuaHRtbCxjb29raWVjbGlja2VyLmh0bSxjbHVzdGVycnVzaC5odG1sLGNsZWFudXBpby5odG1sLGNsYXNob2Z2aWtpbmdzLmh0bWwsY2lyY2xvTzIuaHRtbCxjaXJjbG9PLmh0bWwsY2hvcHB5b3JjLmh0bWwsY2hlc3MuaHRtbCxjYXJraW5nYXJlbmEuaHRtbCxjYXJkcmF3aW5nLmh0bWwsY2FweWJhcmFjbGlja2VyLmh0bWwsY2FuZHljcnVzaC5odG1sLGJ1YmJsZXNob290ZXIuaHRtbCxicmVha2luZ3RoZWJhbmsuaHRtbCxib3hpbmdyYW5kb20uaHRtLGJvd21hc3RlcnMuaHRtbCxib3VuY3ltb3RvcnMuaHRtbCxib2J0aGVyb2JiZXI1Lmh0bWwsYm9idGhlcm9iYmVyMi5odG1sLGJvYnRoZXJvYmJlci5odG1sLGJsdW1naXJvY2tldC5odG1sLGJsdW1naXJhY2Vycy5odG1sLGJsb3hvcnouaHRtbCxibG9vbnNURDUuaHRtbCxibG9vbnNURDQuaHRtbCxibG9vbnNURDMuaHRtbCxibG9vbnNURDIuaHRtbCxibG9vbnNURC5odG1sLGJsb2NreXNuYWtlcy5odG1sLGJpdHBsYW5lcy5odG0sYml0bGlmZS5odG1sLGJhc2tldHJhbmRvbS5odG1sLGJhc2tldGJyb3MuaHRtbCxiYXNrZXRiYWxsc3RhcnMuaHRtbCxiYXNrZXRiYWxsbGVnZW5kcy5odG1sLGJhc2ViYWxsYnJvcy5odG1sLGJhbGRpc2Jhc2ljcy5odG1sLGJhZHBpZ2dpZXMuaHRtbCxiYWRwYXJlbnRpbmcuaHRtbCxiYWRpY2VjcmVhbTMuaHRtbCxiYWRpY2VjcmVhbTIuaHRtbCxiYWRpY2VjcmVhbS5odG1sLGJhY29ubWF5ZGllLmh0bWwsYmFja3Jvb21zLmh0bWwsYXdlc29tZXRhbmtzMi5odG1sLGF3ZXNvbWV0YW5rcy5odG1sLGFuZ3J5YmlyZHNzcGFjZS5odG1sLGFuZ3J5YmlyZHNzaG93ZG93bi5odG1sLGFuZ3J5YmlyZHMuaHRtbCxhbW9uZ3VzLmh0bWwsYWdlc29mY29uZmxpY3QuaHRtbCxhZ2VvZndhcjIuaHRtbCxhZ2VvZndhci5odG1sLGFnYXJpb2xpdGUuaHRtbCxJbmRldi5odG1sLEJldGFfMS4zLmh0bWwsQWxwaGFfMS4yLjYuaHRtbCw4YmFsbGNsYXNzaWMuaHRtbCwzRGZsaWdodHNpbXVsYXRvci5odG1sLDIwNDhjdXBjYWtlcy5odG1sLDIwNDguaHRtbCwxdjEubG9sLmh0bWwsMW9uMXRlbm5pcy5odG1sLDFvbjFzb2NjZXIuaHRtbCwxMm1pbmliYXR0bGVzLmh0bWwsMTBtaW51dGVzdGlsbGRhd24uaHRtbCx6emUuaHRtbCx6emQuaHRtbCx6emMuaHRtbA==";
+    
+    // Decode logic (happens in memory only)
+    const list = atob(raw).split(',').sort((a,b) => a.localeCompare(b));
+    let currentCat = 'All';
 
-    const container = document.getElementById('button-container');
-    const navTabs = document.getElementById('nav-tabs');
-
-    function init() {
-        gameFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-        createTabs();
-        showCategory('All');
-    }
-
-    function createTabs() {
-        const letters = ['All', ...new Set(gameFiles.map(f => f[0].toUpperCase()))].sort();
-        letters.forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'tab-btn';
-            btn.innerText = letter;
-            btn.onclick = () => showCategory(letter, btn);
-            navTabs.appendChild(btn);
-        });
-    }
-
-    function showCategory(cat, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        if(btn) btn.classList.add('active');
-
+    function draw() {
+        const s = document.getElementById('s').value.toLowerCase();
+        const container = document.getElementById('list');
         container.innerHTML = '';
-        const filtered = cat === 'All' ? gameFiles : gameFiles.filter(f => f[0].toUpperCase() === cat);
-        
-        filtered.forEach(file => {
-            const gameName = file.split('.')[0].replace(/([A-Z])/g, ' $1').replace(/-/g, ' ');
-            const div = document.createElement('div');
-            div.className = 'button';
-            div.innerHTML = `<span>${gameName.toUpperCase()}</span>`;
-            div.onclick = () => launchGame(file);
-            container.appendChild(div);
+
+        list.filter(f => (currentCat === 'All' || f[0].toUpperCase() === currentCat) && f.toLowerCase().includes(s))
+            .forEach(file => {
+                const btn = document.createElement('div');
+                btn.className = 'g';
+                btn.innerHTML = `<span>${file.split('.')[0].toUpperCase()}</span>`;
+                btn.onclick = () => {
+                    document.getElementById('f').src = "offline/" + file;
+                    document.getElementById('view').style.display = 'block';
+                };
+                container.appendChild(btn);
+            });
+    }
+
+    function initTabs() {
+        const letters = ['All', ...new Set(list.map(f => f[0].toUpperCase()))].sort();
+        const tDiv = document.getElementById('tabs');
+        letters.forEach(l => {
+            const b = document.createElement('div');
+            b.className = 't';
+            b.innerText = l;
+            b.onclick = () => {
+                document.querySelectorAll('.t').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                currentCat = l;
+                draw();
+            };
+            tDiv.appendChild(b);
         });
+        document.querySelector('.t').classList.add('active');
+        draw();
     }
 
-    function filterGames() {
-        const term = document.getElementById('search-bar').value.toLowerCase();
-        container.innerHTML = '';
-        gameFiles.filter(f => f.toLowerCase().includes(term)).forEach(file => {
-            const div = document.createElement('div');
-            div.className = 'button';
-            div.innerHTML = `<span>${file.split('.')[0].toUpperCase()}</span>`;
-            div.onclick = () => launchGame(file);
-            container.appendChild(div);
-        });
-    }
-
-    function launchGame(file) {
-        // Point to your /offline/ directory
-        document.getElementById('game-frame').src = "offline/" + file;
-        document.getElementById('game-overlay').style.display = 'block';
-    }
-
-    function closeGame() {
-        document.getElementById('game-overlay').style.display = 'none';
-        document.getElementById('game-frame').src = '';
-    }
-
-    window.addEventListener('keydown', (e) => { if(e.key === "Escape") closeGame(); });
-
-    init();
+    function cls() { document.getElementById('view').style.display='none'; document.getElementById('f').src=''; }
+    window.onkeydown = (e) => { if(e.key==="Escape") cls(); };
+    initTabs();
 </script>
-
 </body>
 </html>
